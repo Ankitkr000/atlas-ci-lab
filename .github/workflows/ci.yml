@@ -1,3 +1,4 @@
+
 name: CI
 
 on: [push, pull_request]
@@ -5,26 +6,38 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
       - name: Install dependencies
         run: npm install
+
       - name: Run tests
         run: npm test
 
-deploy-check:
-  needs: test
-  runs-on: ubuntu-latest
+  deploy-check:
+    needs: test
+    runs-on: ubuntu-latest
 
-  permissions:
-    contents: read
+    permissions:
+      contents: read
 
-  steps:
-    - name: Deploy
-      run: echo "Deploying with token $APP_TOKEN"
-      env:
-        APP_TOKEN: ${{ secrets.APP_TOKEN }}
+    steps:
+      - name: Deploy
+        run: |
+          if [ -z "$APP_TOKEN" ]; then
+            echo "APP_TOKEN is missing"
+            exit 1
+          fi
+          echo "Deploying successfully with APP_TOKEN configured"
+        env:
+          APP_TOKEN: ${{ secrets.APP_TOKEN }}
